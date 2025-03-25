@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Daily Journal</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #34495e;
+            font-size: 1.8em;
+            margin-top: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        form {
+            margin-bottom: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        button {
+            background-color: #3498db;
+            color: rgb(123, 45, 45);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .entry {
+            border: 1px solid #4d1414;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px RGBA(0, 0, 0, 0.1);
+        }
+        .entry h3 {
+            margin: 0 0 10px;
+            color: #0e4e8e;
+            font-size: 1.4em;
+        }
+        .entry p {
+            margin: 0 0 10px;
+            line-height: 1.5;
+        }
+        .entry small {
+            color: #054248;
+            font-size: 0.9em;
+        }
+        .entry form {
+            display: inline;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+        }
+        .entry button {
+            background-color: #f0e8e7;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+        .entry button:hover {
+            background-color: #c0392b;
+        }
+        /* Filter Form Styling */
+        #filterDate {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #34495e;
+        }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            margin-left: 15px;
+            font-size: 1em;
+        }
+        a:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        p {
+            text-align: center;
+            color: #083c3f;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>Daily Journal</h1>
+
+    <!-- Journal Entry Form -->
+    <form action="/add" method="POST">
+        <input type="text" name="title" placeholder="Title" required />
+        <textarea name="content" placeholder="Write your journal entry here..." required></textarea>
+        <button type="submit">Add Entry</button>
+    </form>
+
+    <!-- Date Filter Form -->
+    <form action="/dashboard" method="GET">
+        <label for="filterDate">Filter by Date:</label>
+        <input type="date" id="filterDate" name="filterDate" value="<%= filterDate || '' %>">
+        <button type="submit">Filter</button>
+        <a href="/dashboard">Clear Filter</a>
+    </form>
+
+    <h2>Entries</h2>
+    <% if (entries.length === 0) { %>
+        <p>No entries found for this date.</p>
+    <% } else { %>
+        <% entries.forEach(entry => { %>
+            <div class="entry">
+                <h3><%= entry.title %></h3>
+                <p><%= entry.content %></p>
+                <small><%= new Date(entry.date).toLocaleString() %></small>
+                <form action="/delete/<%= entry.id %>" method="POST" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
+        <% }) %>
+    <% } %>
+</body>
+</html>
