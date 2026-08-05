@@ -34,15 +34,19 @@ initializeApp({
 const db = getFirestore();
 
 // Login and Signup Routes (unchanged)
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
+
 app.get("/login", (req, res) => {
   res.render("users/login", { errorMessage: null });
 });
 
-app.get("/signUp", (req, res) => {
+app.get("/signup", (req, res) => {
   res.render("users/signup", { errorMessage: null });
 });
 
-app.post("/signUp", async (req, res) => {
+app.post("/signup", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -67,8 +71,14 @@ app.post("/signUp", async (req, res) => {
       password: hashedPassword,
     });
 
-    req.session.userId = docRef.id;
-    res.redirect("/dashboard");
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Session regenerate error:", err);
+      }
+      req.session.userId = docRef.id;
+      req.session.email = email;
+      res.redirect("/dashboard");
+    });
   } catch (err) {
     console.error("Signup error:", err.message, err.stack);
     res.status(500).render("users/signup", {
@@ -98,8 +108,14 @@ app.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, userDoc.data().password);
 
     if (match) {
-      req.session.userId = userDoc.id;
-      res.redirect("/dashboard");
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regenerate error:", err);
+        }
+        req.session.userId = userDoc.id;
+        req.session.email = userDoc.data().email;
+        res.redirect("/dashboard");
+      });
     } else {
       res.render("users/login", { errorMessage: "Incorrect password." });
     }
@@ -113,9 +129,16 @@ app.post("/login", async (req, res) => {
 
 // Dashboard Route with Date Filter
 app.get("/dashboard", async (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
   try {
     const { filterDate } = req.query; // Get date from query params
-    let query = db.collection("journalEntries").orderBy("date", "desc");
+    const query = db.collection("journalEntries").where("userId", "==", req.session.userId);
+    const snapshot = await query.get();
+
+    let entries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     if (filterDate) {
       const startOfDay = new Date(filterDate);
@@ -123,14 +146,18 @@ app.get("/dashboard", async (req, res) => {
       const endOfDay = new Date(filterDate);
       endOfDay.setHours(23, 59, 59, 999);
 
-      query = query
-        .where("date", ">=", startOfDay.toISOString())
-        .where("date", "<=", endOfDay.toISOString());
+      entries = entries.filter((entry) => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= startOfDay && entryDate <= endOfDay;
+      });
     }
 
-    const snapshot = await query.get();
-    const entries = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    res.render("templates/index", { entries, filterDate });
+    entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    res.render("templates/index", {
+      entries,
+      filterDate,
+      userEmail: req.session.email,
+    });
   } catch (err) {
     console.error("Dashboard error:", err.message, err.stack);
     res.status(500).send("Error loading dashboard");
@@ -139,10 +166,16 @@ app.get("/dashboard", async (req, res) => {
 
 // Add New Journal Entry
 app.post("/add", async (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
   const { title, content } = req.body;
   await db.collection("journalEntries").add({
     title,
     content,
+    userId: req.session.userId,
+    userEmail: req.session.email,
     date: new Date().toISOString(),
   });
   res.redirect("/dashboard");
@@ -150,8 +183,65 @@ app.post("/add", async (req, res) => {
 
 // Delete Entry
 app.post("/delete/:id", async (req, res) => {
-  await db.collection("journalEntries").doc(req.params.id).delete();
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
+  const docRef = db.collection("journalEntries").doc(req.params.id);
+  const entry = await docRef.get();
+
+  if (!entry.exists || entry.data().userId !== req.session.userId) {
+    return res.redirect("/dashboard");
+  }
+
+  await docRef.delete();
   res.redirect("/dashboard");
+});
+
+app.get("/edit/:id", async (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
+  const docRef = db.collection("journalEntries").doc(req.params.id);
+  const entry = await docRef.get();
+
+  if (!entry.exists || entry.data().userId !== req.session.userId) {
+    return res.redirect("/dashboard");
+  }
+
+  res.render("templates/edit", { entry: { id: entry.id, ...entry.data() } });
+});
+
+app.post("/edit/:id", async (req, res) => {
+  if (!req.session.userId) {
+    return res.redirect("/login");
+  }
+
+  const docRef = db.collection("journalEntries").doc(req.params.id);
+  const entry = await docRef.get();
+
+  if (!entry.exists || entry.data().userId !== req.session.userId) {
+    return res.redirect("/dashboard");
+  }
+
+  const { title, content } = req.body;
+  await docRef.update({
+    title,
+    content,
+    date: new Date().toISOString(),
+  });
+
+  res.redirect("/dashboard");
+});
+
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+    }
+    res.redirect("/login");
+  });
 });
 
 // Start Server

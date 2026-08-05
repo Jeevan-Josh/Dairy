@@ -9,46 +9,159 @@
       rel="stylesheet"
     />
     <style>
+      :root {
+        --bg: #0f172a;
+        --panel: rgba(15, 23, 42, 0.92);
+        --accent: #a855f7;
+        --accent-2: #7c3aed;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
       body {
-        background-color: #f8f9fa;
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', system-ui, sans-serif;
+        background: radial-gradient(circle at top left, rgba(168, 85, 247, 0.22), transparent 25%),
+          radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.24), transparent 25%),
+          linear-gradient(135deg, #020617 0%, #111827 100%);
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        color: var(--text);
+        position: relative;
+        overflow: hidden;
+      }
+      body::before,
+      body::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(100px);
+        pointer-events: none;
+        opacity: 0.5;
+      }
+      body::before {
+        left: 12%;
+        top: 8%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.18), transparent 55%);
+        animation: drift-left 14s ease-in-out infinite alternate;
+      }
+      body::after {
+        right: 10%;
+        bottom: 6%;
+        width: 360px;
+        height: 360px;
+        background: radial-gradient(circle, rgba(124, 58, 237, 0.16), transparent 55%);
+        animation: drift-right 12s ease-in-out infinite alternate;
       }
       .login-container {
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 400px;
+        width: min(460px, calc(100% - 32px));
+        padding: 40px;
+        background: rgba(10, 15, 30, 0.96);
+        border: 1px solid rgba(148, 163, 184, 0.14);
+        border-radius: 34px;
+        box-shadow: 0 28px 90px rgba(15, 23, 42, 0.36);
+        backdrop-filter: blur(18px);
+        animation: fadeIn 0.9s ease both;
+        position: relative;
+        overflow: hidden;
       }
-      .login-container h1 {
+      .login-container::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(168, 85, 247, 0.1), transparent 30%),
+                    radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.08), transparent 26%);
+        pointer-events: none;
+        opacity: 0.9;
+      }
+      h1 {
+        color: #e2e8f0;
+        background: linear-gradient(135deg, #7c3aed, #a855f7 45%, #8b5cf6 75%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: textGlow 6s ease-in-out infinite;
+      }
+      h1 {
+        margin: 0 0 26px;
+        font-size: clamp(2rem, 2.3vw, 2.5rem);
         text-align: center;
-        margin-bottom: 20px;
-        font-weight: bold;
-        color: #343a40;
+        letter-spacing: -0.04em;
       }
       .form-control {
-        border-radius: 5px;
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 16px 20px;
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
       }
       .form-control:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+        outline: none;
+        border-color: rgba(168, 85, 247, 0.8);
+        box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
+        background: rgba(15, 23, 42, 0.98);
       }
       .btn-success {
         width: 100%;
         font-size: 16px;
-        font-weight: bold;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        border-radius: 22px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        border: none;
+        transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
       }
       .btn-success:hover {
-        background-color: #218838;
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        box-shadow: 0 18px 40px rgba(168, 85, 247, 0.25);
       }
       .error-message {
-        color: red;
-        font-size: 0.9rem;
+        color: #fb7185;
+        font-size: 0.95rem;
         text-align: center;
+        margin-bottom: 18px;
+        animation: pop 0.45s ease;
+      }
+      .login-footer {
+        margin-top: 22px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .login-footer a {
+        color: var(--accent);
+        text-decoration: none;
+        transition: color 140ms ease, transform 140ms ease;
+      }
+      .login-footer a:hover {
+        color: var(--accent-2);
+        transform: translateY(-1px);
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes pop {
+        from { opacity: 0; transform: scale(0.92); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes drift-left {
+        from { transform: translateX(0px) translateY(0px) scale(1); }
+        to { transform: translateX(20px) translateY(12px) scale(1.05); }
+      }
+      @keyframes drift-right {
+        from { transform: translateX(0px) translateY(0px) scale(1); }
+        to { transform: translateX(-18px) translateY(-14px) scale(1.05); }
+      }
+      @keyframes textGlow {
+        0%, 100% { text-shadow: 0 10px 24px rgba(168, 85, 247, 0.16); }
+        50% { text-shadow: 0 16px 40px rgba(124, 58, 237, 0.24); }
       }
     </style>
   </head>
@@ -85,9 +198,9 @@
           />
         </div>
         <button class="btn btn-success">Login</button>
-        <br>
-        <br>
-        <p>Didn't have an account <a href="http://localhost:8080/signup">Signup</a></p>
+        <div class="login-footer">
+          <p>Don't have an account? <a href="/signup">Signup</a></p>
+        </div>
       </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
