@@ -23,6 +23,8 @@ Daily Journal is a personal journaling web app built with Node.js, Express, EJS,
    node app.js
    ```
 4. Open http://localhost:8080 in your browser.
+5. Live link https://dairy-15m5.onrender.com.
+
 
 ## Notes
 
