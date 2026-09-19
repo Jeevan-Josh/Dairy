@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
-const { initializeApp, cert } = require("firebase-admin/app");
+const admin = require("firebase-admin");
 const { getFirestore } = require("firebase-admin/firestore");
 
 const app = express();
@@ -27,10 +27,25 @@ app.use(
 );
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("./key.json");
-initializeApp({
-  credential: cert(serviceAccount),
-});
+let serviceAccount;
+
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    serviceAccount = require("./key.json");
+  }
+} catch (err) {
+  console.warn("Using local key.json fallback failed; continuing with env var only.", err.message);
+  serviceAccount = null;
+}
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: serviceAccount ? admin.credential.cert(serviceAccount) : undefined,
+  });
+}
+
 const db = getFirestore();
 
 // Login and Signup Routes (unchanged)
@@ -245,7 +260,7 @@ app.get("/logout", (req, res) => {
 });
 
 // Start Server
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
