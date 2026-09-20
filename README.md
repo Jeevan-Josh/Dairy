@@ -11,6 +11,18 @@ Daily Journal is a personal journaling web app built with Node.js, Express, EJS,
 - Animated dark UI with violet styling
 - Firebase-backed storage for user entries
 
+## Technologies Used
+This project is built with a Node.js + Express backend and EJS views.
+
+Backend: Node.js and Express
+Template engine: EJS
+User authentication: bcrypt for password hashing
+Session management: express-session
+Database: Firebase Firestore via Firebase Admin SDK
+Frontend styling: custom CSS with Bootstrap on the login/signup pages
+Deployment config: Render, using render.yaml
+Form handling: Express middleware and method override for edit/delete flows
+
 ## Installation
 
 1. Install dependencies:
